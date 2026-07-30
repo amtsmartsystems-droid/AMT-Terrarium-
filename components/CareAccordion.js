@@ -3,10 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * CareAccordion — Collapsible care instructions
- * Maps to care_instructions[] from JSON payload
- */
 export default function CareAccordion({ instructions, lang }) {
   const [openId, setOpenId] = useState(null);
   const isAr = lang === "ar";
@@ -15,72 +11,89 @@ export default function CareAccordion({ instructions, lang }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.25 }}
-      className="mx-5 mb-6"
+      transition={{ duration: 0.55, delay: 0.2 }}
+      className="mx-5 mb-5"
       dir={isAr ? "rtl" : "ltr"}
     >
-      {/* Section Header */}
-      <div className="flex items-center gap-2 mb-4 px-1">
+      {/* ── Section label ── */}
+      <div className="flex items-center justify-center gap-3 mb-4 px-2">
         <div
-          className="w-[3px] h-5 rounded-full"
-          style={{ background: "rgba(var(--primary-rgb),1)", boxShadow: "0 0 10px rgba(var(--primary-rgb),0.6)" }}
+          className="flex-1 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(var(--primary-rgb),0.3))" }}
         />
-        <span
-          className="text-[11px] font-black tracking-widest uppercase"
-          style={{ color: "rgba(var(--primary-rgb),0.8)", fontFamily: "Cairo, sans-serif" }}
-        >
-          {isAr ? "تعليمات العناية" : "Care Instructions"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">🌿</span>
+          <span
+            className="text-[11px] font-black tracking-[0.22em] uppercase"
+            style={{ color: "rgba(var(--primary-rgb),0.75)", fontFamily: "Cairo, sans-serif" }}
+          >
+            {isAr ? "تعليمات العناية" : "Care Instructions"}
+          </span>
+        </div>
+        <div
+          className="flex-1 h-px"
+          style={{ background: "linear-gradient(90deg, rgba(var(--primary-rgb),0.3), transparent)" }}
+        />
       </div>
 
-      {/* Accordion Items */}
-      <div className="flex flex-col gap-2">
+      {/* ── Accordion Glass Card ── */}
+      <div
+        className="rounded-3xl overflow-hidden"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          boxShadow: "0 10px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
+        }}
+      >
         {instructions.map((item, i) => {
           const isOpen = openId === item.id;
+          const isLast = i === instructions.length - 1;
           const label = isAr ? item.title : item.title_en;
           const detail = isAr ? item.detail : item.detail_en;
 
           return (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.07 }}
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: isOpen
-                  ? "rgba(var(--primary-rgb),0.06)"
-                  : "rgba(255,255,255,0.03)",
-                border: isOpen
-                  ? "1px solid rgba(var(--primary-rgb),0.3)"
-                  : "1px solid rgba(255,255,255,0.07)",
-                transition: "all 0.3s ease",
-              }}
-            >
+            <div key={item.id}>
               {/* Row */}
-              <button
+              <motion.button
                 onClick={() => toggle(item.id)}
-                className="w-full flex items-center gap-4 px-5 py-4 text-left"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 + i * 0.07 }}
+                className="w-full flex items-center gap-4 px-5 py-4 transition-all duration-300 text-center"
+                style={{
+                  background: isOpen ? "rgba(var(--primary-rgb),0.07)" : "transparent",
+                  cursor: "pointer",
+                }}
               >
-                {/* Icon */}
+                {/* Icon bubble */}
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-xl transition-all duration-300"
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl transition-all duration-300"
                   style={{
                     background: isOpen
                       ? "rgba(var(--primary-rgb),0.2)"
-                      : "rgba(var(--primary-rgb),0.08)",
-                    border: "1px solid rgba(var(--primary-rgb),0.2)",
+                      : "rgba(255,255,255,0.06)",
+                    border: isOpen
+                      ? "1px solid rgba(var(--primary-rgb),0.35)"
+                      : "1px solid rgba(255,255,255,0.08)",
+                    boxShadow: isOpen ? `0 0 20px rgba(var(--primary-rgb),0.2)` : "none",
+                    transition: "all 0.3s ease",
                   }}
                 >
                   {item.icon}
                 </div>
 
-                {/* Label */}
+                {/* Centered label */}
                 <span
-                  className="flex-1 font-bold text-[15px] text-white"
-                  style={{ fontFamily: "Cairo, sans-serif" }}
+                  className="flex-1 font-bold text-[15px] text-center"
+                  style={{
+                    color: isOpen ? "rgba(var(--primary-rgb),0.95)" : "rgba(255,255,255,0.85)",
+                    fontFamily: "Cairo, sans-serif",
+                    transition: "color 0.3s",
+                  }}
                 >
                   {label}
                 </span>
@@ -88,12 +101,13 @@ export default function CareAccordion({ instructions, lang }) {
                 {/* Chevron */}
                 <motion.div
                   animate={{ rotate: isOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ color: "rgba(var(--primary-rgb),0.6)" }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  style={{ color: isOpen ? "rgba(var(--primary-rgb),0.8)" : "rgba(255,255,255,0.25)" }}
+                  className="flex-shrink-0"
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path
-                      d="M4 6l4 4 4-4"
+                      d="M5 7l4 4 4-4"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
@@ -101,22 +115,22 @@ export default function CareAccordion({ instructions, lang }) {
                     />
                   </svg>
                 </motion.div>
-              </button>
+              </motion.button>
 
-              {/* Expandable content */}
+              {/* Expandable detail */}
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="overflow-hidden"
                   >
                     <div
-                      className="px-5 pb-4 pt-1 text-[13px] leading-relaxed"
+                      className="px-6 pb-5 pt-2 text-[13px] leading-relaxed text-center"
                       style={{
-                        color: "rgba(255,255,255,0.65)",
+                        color: "rgba(255,255,255,0.6)",
                         fontFamily: "Cairo, sans-serif",
                         borderTop: "1px solid rgba(var(--primary-rgb),0.1)",
                       }}
@@ -126,7 +140,15 @@ export default function CareAccordion({ instructions, lang }) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+
+              {/* Separator */}
+              {!isLast && (
+                <div
+                  className="mx-5"
+                  style={{ height: 1, background: "rgba(255,255,255,0.05)" }}
+                />
+              )}
+            </div>
           );
         })}
       </div>
