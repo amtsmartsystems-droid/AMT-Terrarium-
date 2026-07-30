@@ -10,8 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import SessionLocal, engine
 import models
 
-# Ensure tables are created
-models.Base.metadata.drop_all(bind=engine) # Drop to recreate schema for this new architecture
+# Ensure tables are created (do NOT drop them in production!)
 models.Base.metadata.create_all(bind=engine)
 
 def generate_cryptic_code(length=5):
