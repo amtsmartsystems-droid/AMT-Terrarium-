@@ -2,8 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 export const metadata = {
-  title: "AMYT Smart Terrarium",
-  description: "Your intelligent terrarium companion powered by AMYT Smart Systems",
+  title: "AMT Smart Terrarium",
+  description: "Your intelligent terrarium companion powered by AMT Smart Systems",
 };
 
 export default function RootLayout({ children }) {

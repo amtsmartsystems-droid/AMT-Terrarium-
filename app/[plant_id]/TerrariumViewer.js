@@ -235,7 +235,7 @@ export default function TerrariumViewer({ plant }) {
             className="text-[11px] tracking-[0.2em] uppercase"
             style={{ color: "rgba(255,255,255,0.15)", fontFamily: "Cairo, sans-serif" }}
           >
-            Powered by AMYT Smart Systems
+            Powered by AMT Smart Systems
           </p>
         </div>
       </div>

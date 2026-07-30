@@ -12,7 +12,7 @@ export default async function PlantPage({ params }) {
 
 export function generateMetadata({ params }) {
   return {
-    title: `${params.plant_id} — AMYT Smart Terrarium`,
+    title: `${params.plant_id} — AMT Smart Terrarium`,
     description: "Your smart terrarium companion",
   };
 }
