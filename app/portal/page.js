@@ -182,10 +182,11 @@ export default function Portal() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <input
-                type="password"
+                type="text"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                className="w-full text-center text-3xl tracking-[1em] p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-mono"
+                className="w-full text-center text-3xl p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-mono"
+                style={{ WebkitTextSecurity: "disc" }}
                 placeholder="****"
                 maxLength={4}
                 required
