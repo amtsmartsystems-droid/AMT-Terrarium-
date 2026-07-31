@@ -2,7 +2,6 @@ import sys
 import os
 import random
 import string
-import datetime
 
 # Add the current directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -10,17 +9,30 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import SessionLocal, engine
 import models
 
-# Ensure tables are created (do NOT drop them in production!)
-models.Base.metadata.create_all(bind=engine)
-
 def generate_cryptic_code(length=5):
     characters = string.ascii_uppercase + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
 def seed_db():
+    print("Dropping old tables...")
+    models.Base.metadata.drop_all(bind=engine)
+    
+    print("Creating new tables...")
+    models.Base.metadata.create_all(bind=engine)
+    
     db = SessionLocal()
     
-    # 1. Create Base Plant (Equatorial Forest)
+    # 1. Create a Default Company (for testing B2B functionality)
+    default_company = models.Company(
+        name="AMT HQ",
+        pin="1234" # Default company pin
+    )
+    db.add(default_company)
+    db.commit()
+    db.refresh(default_company)
+    print("Created default company (AMT HQ).")
+    
+    # 2. Create Base Plant
     base_plant = models.BasePlant(
         plant_name="غابة الاستوائية",
         plant_name_en="Equatorial Forest",
@@ -65,38 +77,39 @@ def seed_db():
     db.add(base_plant)
     db.commit()
     db.refresh(base_plant)
+    print("Created Base Plant (Equatorial Forest).")
     
-    # 2. Pre-generate 500 stickers
-    existing_stickers = db.query(models.Sticker).count()
-    if existing_stickers == 0:
-        stickers_to_add = []
-        for i in range(1, 501):
-            # Ensure unique cryptic code
+    # 3. Generate 500 stickers
+    stickers_to_add = []
+    for i in range(1, 501):
+        code = generate_cryptic_code()
+        # Note: In a loop of 500, collisions on a 5-char code are extremely rare, but we handle it just in case.
+        while db.query(models.Sticker).filter(models.Sticker.cryptic_code == code).first() is not None or any(s.cryptic_code == code for s in stickers_to_add):
             code = generate_cryptic_code()
-            while db.query(models.Sticker).filter(models.Sticker.cryptic_code == code).first() is not None:
-                code = generate_cryptic_code()
-            
-            sticker = models.Sticker(
-                cryptic_code=code,
-                serial_number=i,
-                is_active=False
-            )
-            stickers_to_add.append(sticker)
-            
-        db.add_all(stickers_to_add)
-        db.commit()
-        print("Generated 500 inactive stickers.")
+        
+        # Assign first 50 stickers to the default company
+        comp_id = default_company.id if i <= 50 else None
+        
+        sticker = models.Sticker(
+            cryptic_code=code,
+            serial_number=i,
+            is_active=False,
+            company_id=comp_id
+        )
+        stickers_to_add.append(sticker)
+        
+    db.add_all(stickers_to_add)
+    db.commit()
+    print("Generated 500 stickers (First 50 assigned to AMT HQ).")
     
-    # 3. Simulate activation for sticker #12 (TRM-102 equivalent) for testing purposes
-    # Since the old frontend expects the URL /plants/TRM-102, let's hardcode sticker 1 to TRM-102 for backward compatibility during testing
-    # Or actually, we should just update the frontend to use the cryptic code.
-    # We will set cryptic_code "TRM-102" to sticker #1 so the frontend works immediately!
+    # 4. Activate sticker #1 for testing (TRM-102)
     sticker_1 = db.query(models.Sticker).filter(models.Sticker.serial_number == 1).first()
     if sticker_1:
         sticker_1.cryptic_code = "TRM-102"
         sticker_1.is_active = True
         sticker_1.activation_date = "2026-01-15"
         sticker_1.base_plant_id = base_plant.id
+        sticker_1.scan_count = 12
         
         gift = models.GiftContent(
             owner_name="أحمد",
@@ -106,7 +119,9 @@ def seed_db():
             is_message_opened=False,
             hidden_video_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             gift_message="هدية خاصة بمناسبة عيد ميلادك 🎁",
-            gift_message_en="A special gift for your birthday 🎁"
+            gift_message_en="A special gift for your birthday 🎁",
+            pet_name="نبتة السعادة",
+            custom_theme_color="#000000"
         )
         db.add(gift)
         db.commit()
@@ -114,9 +129,10 @@ def seed_db():
         
         sticker_1.gift_content_id = gift.id
         db.commit()
+        print("Activated Sticker 1 (TRM-102) for testing.")
         
     db.close()
-    print("Successfully seeded Base Plant and 500 stickers!")
+    print("Seeding complete!")
 
 if __name__ == "__main__":
     seed_db()
