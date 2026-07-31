@@ -213,6 +213,18 @@ def customize_plant(cryptic_code: str, data: CustomizePlant, db: Session = Depen
 
 # --- Super Admin & Company Endpoints (Nabatarium Portal) ---
 
+@app.post("/admin/seed-database")
+def trigger_seed(user: dict = Depends(verify_role), db: Session = Depends(database.get_db)):
+    if user["role"] != "SUPER_ADMIN":
+        raise HTTPException(status_code=403, detail="Super Admin only")
+    
+    import seed
+    try:
+        seed.seed_db()
+        return {"status": "success", "message": "Database seeded with 500 stickers and AMT HQ company!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/admin/me")
 def get_me(user: dict = Depends(verify_role), db: Session = Depends(database.get_db)):
     if user["role"] == "SUPER_ADMIN":

@@ -263,6 +263,14 @@ export default function Portal() {
               >
                 <Tag className="w-4 h-4" /> تخصيص للشركات
               </button>
+              <button
+                onClick={() => { setActiveTab("database"); setMessage(null); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                  activeTab === "database" ? "bg-white text-red-700 shadow-sm" : "text-gray-500 hover:text-red-600"
+                }`}
+              >
+                <AlertCircle className="w-4 h-4" /> قاعدة البيانات
+              </button>
             </>
           )}
         </div>
@@ -392,6 +400,42 @@ export default function Portal() {
               {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "تخصيص المجموعة"}
             </button>
           </form>
+        )}
+
+        {/* TAB: Database Seed (Super Admin Only) */}
+        {activeTab === "database" && userRole === "SUPER_ADMIN" && (
+          <div className="bg-red-50 rounded-2xl shadow-sm border border-red-100 p-6 space-y-6">
+            <h2 className="text-xl font-bold text-red-800 border-b border-red-200 pb-2">منطقة الخطر: إعادة بناء قاعدة البيانات</h2>
+            <p className="text-red-700 text-sm leading-relaxed">
+              تحذير: الضغط على هذا الزر سيقوم بمسح جميع الجداول الحالية وإعادة بناء قاعدة البيانات من الصفر، وتوليد 500 ستيكر جديد، وإضافة شركة اختبارية. لا تفعل هذا إلا في بيئة التطوير أو إذا كنت تنوي تصفير النظام!
+            </p>
+            <button
+              onClick={async () => {
+                if(!confirm("هل أنت متأكد بنسبة 100% أنك تريد مسح كل شيء وإعادة توليد الستيكرات؟")) return;
+                setLoading(true);
+                setMessage(null);
+                try {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/admin/seed-database`, {
+                    method: "POST",
+                    headers: { "x-pin": pin }
+                  });
+                  if(res.ok) {
+                    const data = await res.json();
+                    setMessage({ type: "success", text: data.message });
+                  } else {
+                    setMessage({ type: "error", text: "فشلت عملية البناء" });
+                  }
+                } catch(e) {
+                  setMessage({ type: "error", text: "خطأ في الاتصال بالخادم" });
+                }
+                setLoading(false);
+              }}
+              disabled={loading}
+              className="w-full bg-red-600 text-white font-bold py-4 rounded-xl hover:bg-red-700 transition-colors shadow-lg"
+            >
+              {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "⚠️ تنفيذ مسح وإعادة بناء شامل (Seed)"}
+            </button>
+          </div>
         )}
 
       </main>
